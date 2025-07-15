@@ -24,9 +24,9 @@ I'm still learning and improving my ability to write maintainable, modular game 
 
 ### Test Features:
 
-##### requesting / parsing data
+#### Requesting / parsing data
 You can modify the web JSON to add more objects or types, and the spawner will spawn new boxes dynamically without modifying the game code.
 
-##### gameplay
+#### Gameplay
 Basic Movement - use W, A, S and D for basic character movement.
 Shooting - left mouse button for firing the projectile.
