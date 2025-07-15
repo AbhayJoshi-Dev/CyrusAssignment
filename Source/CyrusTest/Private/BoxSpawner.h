@@ -8,24 +8,11 @@
 
 #include "BoxSpawner.generated.h"
 
-
-
-
 UCLASS()
 class ABoxSpawner : public AActor
 {
 	GENERATED_BODY()
 
-public:
-
-	UPROPERTY()
-	TArray<FBoxType> BoxTypes;
-
-	UPROPERTY()
-	TArray<FBoxObject> BoxObjects;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class AEnemyBox> EnemySpawn;
 
 public:	
 	// Sets default values for this actor's properties
@@ -39,12 +26,25 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+private:
+
+	UPROPERTY()
+	TArray<FBoxType> BoxTypes;
+
+	UPROPERTY()
+	TArray<FBoxObject> BoxObjects;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AEnemyBox> EnemySpawn;
+
+	UPROPERTY(EditAnywhere)
+	FString URL = "https://raw.githubusercontent.com/CyrusCHAU/Varadise-Technical-Test/refs/heads/main/data.json";
 
 private:
 
-	void RequestHttp();
+	void SendHttpRequest();
+	void HandleRequestCompleted(const FString& ResponseString);
 
-	void HandleRequestCompleted(const FString& ResponseString, bool bSuccess);
-
+	bool ParseBoxData(const FString& JsonString);
 	void SpawnBoxes();
 };

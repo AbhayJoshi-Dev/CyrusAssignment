@@ -42,16 +42,8 @@ void AWeapon::BeginPlay()
 		FVector(1.f, 1.f, 1.f)
 	);
 
-	RecoilTransform = FTransform(
-		FRotator(0.f, -100.f, -5.f),
-		FVector(52.5f, 19.5f, -32.5f),
-		FVector(1.f, 1.f, 1.f)
-	);
-	TargetRecoilTransform = FTransform(
-		FRotator(0.f, -100.f, -5.f),
-		FVector(52.5f, 19.5f, -32.5f),
-		FVector(1.f, 1.f, 1.f)
-	);
+	RecoilTransform = FTransform::Identity;
+	TargetRecoilTransform = FTransform::Identity;
 }
 
 // Called every frame

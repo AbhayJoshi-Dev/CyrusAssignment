@@ -22,7 +22,7 @@ void ABoxSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	RequestHttp();
+	SendHttpRequest();
 }
 
 // Called every frame
@@ -32,52 +32,59 @@ void ABoxSpawner::Tick(float DeltaTime)
 
 }
 
-void ABoxSpawner::RequestHttp()
+void ABoxSpawner::SendHttpRequest()
 {
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
 	Request->SetVerb(TEXT("GET"));
-	Request->SetHeader(TEXT("Contect-Type"), TEXT("application/json"));
-	Request->SetURL("https://raw.githubusercontent.com/CyrusCHAU/Varadise-Technical-Test/refs/heads/main/data.json");
+	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	Request->SetURL(URL);
 
 	Request->OnProcessRequestComplete().BindLambda(
 		[this](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
 		{
-			FString ResponseString = "";
-
-			if (bSuccess)
+			if (!bSuccess || !Response.IsValid())
 			{
-				ResponseString = Response->GetContentAsString();
-				
-				HandleRequestCompleted(ResponseString, bSuccess);
-
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("Failed Http Request!"));
+				UE_LOG(LogTemp, Error, TEXT("HTTP request failed"));
 				return;
 			}
+
+			FString ResponseString = Response->GetContentAsString();
+				
+			HandleRequestCompleted(ResponseString);
 		});
 
 	Request->ProcessRequest();
 }
 
-void ABoxSpawner::HandleRequestCompleted(const FString& ResponseString, bool bSuccess)
+void ABoxSpawner::HandleRequestCompleted(const FString& ResponseString)
 {
-	TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(ResponseString);
-	
+	if (ParseBoxData(ResponseString))
+	{
+		SpawnBoxes();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to parse box data"));
+	}
+}
+
+
+bool ABoxSpawner::ParseBoxData(const FString& JsonString)
+{
+	TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(JsonString);
+
 	TSharedPtr<FJsonObject> obj = MakeShareable(new FJsonObject());
 
 	if (FJsonSerializer::Deserialize(JsonReader, obj))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Deserialize"));
 		const TArray<TSharedPtr<FJsonValue>>* boxtypes;
 
 		if (obj->TryGetArrayField(TEXT("types"), boxtypes))
 		{
 			if (!FJsonObjectConverter::JsonArrayToUStruct(*boxtypes, &BoxTypes, 0, 0))
 			{
-				UE_LOG(LogTemp, Error, TEXT("Failed To Deserialize \"types\""));
-				return;
+				UE_LOG(LogTemp, Error, TEXT("Failed To parse \"types\""));
+				return false;
 			}
 		}
 
@@ -87,18 +94,25 @@ void ABoxSpawner::HandleRequestCompleted(const FString& ResponseString, bool bSu
 		{
 			if (!FJsonObjectConverter::JsonArrayToUStruct(*objects, &BoxObjects, 0, 0))
 			{
-				UE_LOG(LogTemp, Error, TEXT("Failed To Deserialize \"objects\""));
-				return;
+				UE_LOG(LogTemp, Error, TEXT("Failed To parse \"objects\""));
+				return false;
 			}
 		}
 	}
+	else 
+		UE_LOG(LogTemp, Error, TEXT("Failed To deserialize Json"));
 
-	SpawnBoxes();
+	return true;
 }
-
 
 void ABoxSpawner::SpawnBoxes()
 {
+	if (!EnemySpawn)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to spawn EnemyBox. Enemy is null"));
+		return;
+	}
+
 	for (const FBoxObject& BoxObject : BoxObjects)
 	{
 		FActorSpawnParameters params;

@@ -3,6 +3,7 @@
 
 #include "Enemy/EnemyBox.h"
 #include "Components/StaticMeshComponent.h"
+#include "Player/PlayerCharacter.h"
 
 // Sets default values
 AEnemyBox::AEnemyBox()
@@ -42,7 +43,6 @@ void AEnemyBox::Tick(float DeltaTime)
 
 }
 
-#include "Player/PlayerCharacter.h"
 
 void AEnemyBox::DamageTaken(const float Damage)
 {
@@ -52,8 +52,10 @@ void AEnemyBox::DamageTaken(const float Damage)
 	{
 		UE_LOG(LogTemp, Display, TEXT("Enemy Died"));
 
-		APlayerCharacter* Character = Cast<APlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
-		Character->OnScoreUpdated.Broadcast(KillScore);
+		if (APlayerCharacter* Character = Cast<APlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter()))
+		{
+			Character->OnScoreUpdated.Broadcast(KillScore);
+		}
 
 		Destroy();
 	}
