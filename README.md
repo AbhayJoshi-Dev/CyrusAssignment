@@ -2,6 +2,13 @@
 
 A Fps demo with enemy spawning through json parsing and health/damage system
 
+#### How to Build:
+Project uses Unreal Version 5.6 and written in C++, to build the project
+- Right mouse click on the uproject file
+- Generate visual studio project files
+- open and build the solution
+
+
 ### Features:
 
 #### Json Web request and parsing:
